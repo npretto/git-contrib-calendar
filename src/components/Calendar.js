@@ -79,15 +79,23 @@ const Calendar = ({ repoPath, dateFrom, dateTo, year, author }) => {
     fetchCommits();
   }, []);
 
-  if (!commits) {
-    return null;
-  }
-
   const calendarDays = getCalendarDays(dateFrom, dateTo);
   const days = getCalendarDaysWithCommitCounts(calendarDays, commits);
   const groupedDays = groupBy(days, 'dayIndex');
   const months = getMonths(groupedDays[0]);
   const maxCommitsDay = maxBy(days, 'commitsCount');
+
+  const daysSinceFirstCommit = React.useMemo(() => {
+    for (let i = 0; i < days.length; i++) {
+      if (days[i].commitsCount > 0) {
+        return days.length - i;
+      }
+    }
+  });
+
+  if (!commits) {
+    return null;
+  }
 
   return (
     <Box flexDirection="column">
@@ -126,7 +134,8 @@ const Calendar = ({ repoPath, dateFrom, dateTo, year, author }) => {
         <Text>
           Total commits in {year || 'the last year'}: {commits.length}
           <Newline />
-          Avg commits per day: {(commits.length / days.length).toFixed(2)}
+          Avg commits per day:{' '}
+          {(commits.length / daysSinceFirstCommit).toFixed(2)}
           <Newline />
           Max commits on a single day: {maxCommitsDay.commitsCount}
         </Text>
